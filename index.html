@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GEO Audit — Blomsterlandet.se | AI Search Visibility</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f1117;--card:#1a1d27;--card2:#22252f;--border:#2a2d3a;--text:#e4e4e7;--muted:#9ca3af;--accent:#6366f1;--accent2:#818cf8;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--orange:#f97316}
+body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;display:flex;min-height:100vh}
+a{color:var(--accent2);text-decoration:none}
+
+/* Sidebar */
+.sidebar{width:260px;background:var(--card);border-right:1px solid var(--border);padding:24px 0;position:fixed;height:100vh;overflow-y:auto;z-index:10}
+.sidebar .logo{padding:0 24px 24px;border-bottom:1px solid var(--border);margin-bottom:16px}
+.sidebar .logo h2{font-size:15px;font-weight:700;color:var(--text)}
+.sidebar .logo p{font-size:12px;color:var(--muted);margin-top:4px}
+.nav-item{display:block;padding:10px 24px;font-size:13px;color:var(--muted);cursor:pointer;transition:.15s}
+.nav-item:hover,.nav-item.active{color:var(--text);background:var(--card2)}
+.nav-item.active{border-left:3px solid var(--accent)}
+
+/* Main */
+.main{margin-left:260px;flex:1;padding:32px 40px;max-width:1200px}
+.page{display:none}
+.page.active{display:block}
+h1{font-size:24px;font-weight:700;margin-bottom:8px}
+h2{font-size:18px;font-weight:600;margin:24px 0 12px}
+h3{font-size:15px;font-weight:600;margin:16px 0 8px}
+.subtitle{color:var(--muted);font-size:14px;margin-bottom:24px}
+.date-badge{display:inline-block;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:12px;color:var(--muted);margin-bottom:24px}
+
+/* Cards */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.card .value{font-size:28px;font-weight:700}
+.card .sub{font-size:12px;color:var(--muted);margin-top:4px}
+.card.green .value{color:var(--green)}
+.card.red .value{color:var(--red)}
+.card.yellow .value{color:var(--yellow)}
+.card.accent .value{color:var(--accent2)}
+
+/* Score ring */
+.score-ring{width:140px;height:140px;margin:0 auto 16px}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring text{transform:rotate(90deg);transform-origin:center}
+
+/* Matrix table */
+.matrix{width:100%;border-collapse:collapse;margin:16px 0 24px}
+.matrix th,.matrix td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border);font-size:13px}
+.matrix th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;background:var(--card)}
+.matrix td{background:var(--card2)}
+.matrix tr:hover td{background:var(--card)}
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.pill.yes{background:rgba(34,197,94,.15);color:var(--green)}
+.pill.no{background:rgba(239,68,68,.15);color:var(--red)}
+.pill.partial{background:rgba(234,179,8,.15);color:var(--yellow)}
+.rank-pill{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(99,102,241,.15);color:var(--accent2);margin-left:6px}
+
+/* Detail cards */
+.response-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
+.response-card .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.response-card .model{font-weight:600;font-size:14px}
+.response-card .query{font-size:12px;color:var(--muted);font-style:italic}
+.response-card .brands{margin-top:12px}
+.brand-tag{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;margin:3px 4px 3px 0;background:var(--card2);border:1px solid var(--border)}
+.brand-tag.target{background:rgba(99,102,241,.15);border-color:var(--accent);color:var(--accent2);font-weight:600}
+.brand-tag.competitor{background:var(--card2);color:var(--muted)}
+
+/* Actions */
+.action-list{list-style:none;counter-reset:actions}
+.action-list li{counter-increment:actions;position:relative;padding:16px 16px 16px 52px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-size:14px}
+.action-list li::before{content:counter(actions);position:absolute;left:16px;top:16px;width:24px;height:24px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.action-list li .priority{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-left:8px}
+.priority.high{background:rgba(239,68,68,.15);color:var(--red)}
+.priority.med{background:rgba(234,179,8,.15);color:var(--yellow)}
+.priority.low{background:rgba(34,197,94,.15);color:var(--green)}
+
+/* Bar chart */
+.bar-chart{margin:16px 0}
+.bar-row{display:flex;align-items:center;margin-bottom:10px}
+.bar-label{width:100px;font-size:13px;color:var(--muted);flex-shrink:0}
+.bar-track{flex:1;height:28px;background:var(--card2);border-radius:6px;overflow:hidden;position:relative}
+.bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:12px;font-weight:600;color:#fff;transition:.6s ease}
+.bar-fill.chatgpt{background:linear-gradient(90deg,#10a37f,#1a7f64)}
+.bar-fill.claude{background:linear-gradient(90deg,#d4a27f,#b8860b)}
+.bar-fill.gemini{background:linear-gradient(90deg,#4285f4,#34a853)}
+.bar-fill.perplexity{background:linear-gradient(90deg,#1fb8cd,#1a8fa0)}
+
+/* Responsive */
+@media(max-width:900px){
+  .sidebar{display:none}
+  .main{margin-left:0;padding:20px}
+  .card-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .card-grid{grid-template-columns:1fr}
+}
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">
+    <h2>Blomsterlandet.se</h2>
+    <p>GEO Audit — AI Search Visibility</p>
+  </div>
+  <div class="nav-item active" data-page="dashboard">Dashboard</div>
+  <div class="nav-item" data-page="matrix">Visibility Matrix</div>
+  <div class="nav-item" data-page="responses">Full Responses</div>
+  <div class="nav-item" data-page="competitors">Competitor Map</div>
+  <div class="nav-item" data-page="funnel">Purchase Funnel</div>
+  <div class="nav-item" data-page="actions">Action Plan</div>
+  <div class="nav-item" data-page="methodology">Methodology</div>
+</nav>
+
+<div class="main">
+
+<!-- ========== DASHBOARD ========== -->
+<div class="page active" id="dashboard">
+  <h1>GEO Audit: AI Search Visibility</h1>
+  <p class="subtitle">How does Blomsterlandet appear when people ask AI for garden store recommendations?</p>
+  <span class="date-badge">Audited April 11, 2026 &middot; 4 models &middot; 5 queries &middot; 18 checks</span>
+
+  <div class="card-grid">
+    <div class="card accent">
+      <div class="label">Overall Visibility Score</div>
+      <div class="value">56%</div>
+      <div class="sub">10 of 18 checks — mentioned</div>
+    </div>
+    <div class="card green">
+      <div class="label">Discovery Queries</div>
+      <div class="value">58%</div>
+      <div class="sub">7 of 12 — "best garden store"</div>
+    </div>
+    <div class="card green">
+      <div class="label">Comparison Queries</div>
+      <div class="value">100%</div>
+      <div class="sub">3 of 3 — "Blomsterlandet vs Plantagen"</div>
+    </div>
+    <div class="card red">
+      <div class="label">Purchase Queries</div>
+      <div class="value">0%</div>
+      <div class="sub">0 of 3 — "best guarantee + delivery"</div>
+    </div>
+  </div>
+
+  <h2>Visibility by Platform</h2>
+  <div class="bar-chart">
+    <div class="bar-row">
+      <div class="bar-label">ChatGPT</div>
+      <div class="bar-track"><div class="bar-fill chatgpt" style="width:67%">67% (2/3)</div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Claude</div>
+      <div class="bar-track"><div class="bar-fill claude" style="width:100%">100% (2/2)</div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Gemini</div>
+      <div class="bar-track"><div class="bar-fill gemini" style="width:100%">100% (2/2)</div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label">Perplexity</div>
+      <div class="bar-track"><div class="bar-fill perplexity" style="width:33%">33% (1/3)</div></div>
+    </div>
+  </div>
+
+  <h2>The Funnel Problem</h2>
+  <div class="card" style="margin-bottom:12px;border-left:3px solid var(--red)">
+    <h3 style="color:var(--red)">They disappear at the moment of purchase</h3>
+    <p style="font-size:14px;color:var(--muted)">Blomsterlandet shows up when people ask "what are the best garden stores?" (discovery). They even win the head-to-head comparison against Plantagen. But when someone asks "who has the best guarantee and delivery for perennials?" — the actual purchase decision — Blomsterlandet is mentioned by zero out of three AI models. Scandiaplants, Plantagen, and niche stores take over.</p>
+  </div>
+
+  <h2>Key Findings</h2>
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="color:var(--green)">Strong in Swedish discovery</h3>
+    <p style="font-size:14px;color:var(--muted)">When users search in Swedish, Blomsterlandet appears across all four AI engines. ChatGPT even ranks them #1 for "bästa trädgårdsbutiken online Sverige". The brand is well-established in Swedish-language AI responses.</p>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="color:var(--green)">Wins the head-to-head comparison</h3>
+    <p style="font-size:14px;color:var(--muted)">When users ask "Blomsterlandet or Plantagen?", ChatGPT recommends Blomsterlandet as better value. Gemini gives a balanced comparison but highlights Blomsterlandet's Swedish-grown focus. This is strong — the brand holds up under direct scrutiny.</p>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="color:var(--red)">Invisible for feature-specific purchase queries</h3>
+    <p style="font-size:14px;color:var(--muted)">When queries shift to specific buying criteria — plant guarantees, delivery options, perennial selection — Blomsterlandet vanishes. Their website lacks structured, citation-friendly content about these features. Scandiaplants wins on "guarantee" (36-month). Plantagen wins on "delivery". Blomsterlandet's 1-year plant guarantee exists but isn't surfaced by any AI model.</p>
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="color:var(--red)">Invisible in English on ChatGPT (with web search)</h3>
+    <p style="font-size:14px;color:var(--muted)">When ChatGPT uses web search for English queries, Blomsterlandet disappears entirely. Niche players like Ormbunker, Gardens4You, and Scandiaplants dominate instead.</p>
+  </div>
+  <div class="card">
+    <h3 style="color:var(--yellow)">Perplexity is the weakest platform</h3>
+    <p style="font-size:14px;color:var(--muted)">Perplexity only mentions Blomsterlandet for Swedish queries. For English and purchase queries, Plantagen, IKEA, and Plantazon dominate. Perplexity relies heavily on structured web content and citation-friendly pages.</p>
+  </div>
+</div>
+
+<!-- ========== MATRIX ========== -->
+<div class="page" id="matrix">
+  <h1>Visibility Matrix</h1>
+  <p class="subtitle">Does Blomsterlandet appear when each AI model answers these queries?</p>
+
+  <h2>English Queries</h2>
+  <table class="matrix">
+    <thead>
+      <tr><th>Query</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th><th>Perplexity</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>"Best online garden stores in Sweden"</td>
+        <td><span class="pill no">Not mentioned</span></td>
+        <td><span class="pill yes">Mentioned</span></td>
+        <td><span class="pill yes">Mentioned</span></td>
+        <td><span class="pill no">Not mentioned</span></td>
+      </tr>
+      <tr>
+        <td>"Buy garden plants online in Sweden"</td>
+        <td><span class="pill yes">Mentioned</span><span class="rank-pill">#2</span></td>
+        <td><span class="pill partial">Not tested</span></td>
+        <td><span class="pill partial">Not tested</span></td>
+        <td><span class="pill no">Not mentioned</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Swedish Queries</h2>
+  <table class="matrix">
+    <thead>
+      <tr><th>Query</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th><th>Perplexity</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>"Bästa trädgårdsbutikerna online i Sverige"</td>
+        <td><span class="pill yes">Mentioned</span><span class="rank-pill">#1</span></td>
+        <td><span class="pill yes">Mentioned</span></td>
+        <td><span class="pill yes">Mentioned</span></td>
+        <td><span class="pill yes">Mentioned</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>ChatGPT Scraper (Real ChatGPT.com Search)</h2>
+  <table class="matrix">
+    <thead>
+      <tr><th>Query</th><th>Result</th><th>Position</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>"bästa trädgårdsbutiken online Sverige"</td>
+        <td><span class="pill yes">Mentioned</span></td>
+        <td><span class="rank-pill">#1</span> — listed first with link to blomsterlandet.se</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top:24px">
+    <h3>Reading this matrix</h3>
+    <p style="font-size:13px;color:var(--muted)">Each cell represents one query sent to one AI model. "Mentioned" means Blomsterlandet appeared anywhere in the response. Position (#1, #2, etc.) shows where in the list they appeared. All queries used web search when available.</p>
+  </div>
+</div>
+
+<!-- ========== RESPONSES ========== -->
+<div class="page" id="responses">
+  <h1>Full AI Responses</h1>
+  <p class="subtitle">What each model actually said. Blomsterlandet highlighted where mentioned.</p>
+
+  <h2>English: "Best online garden stores in Sweden"</h2>
+
+  <div class="response-card">
+    <div class="header">
+      <span class="model">ChatGPT (GPT-4o) — Web Search</span>
+      <span class="pill no">Not mentioned</span>
+    </div>
+    <div class="query">"What are the best online garden stores in Sweden for buying plants and garden supplies?"</div>
+    <div class="brands">
+      <span class="brand-tag competitor">Ormbunker</span>
+      <span class="brand-tag competitor">Gardens4You</span>
+      <span class="brand-tag competitor">Zetas Garden</span>
+      <span class="brand-tag competitor">Plantinavia</span>
+      <span class="brand-tag competitor">Scandiaplants</span>
+      <span class="brand-tag competitor">Plantazon</span>
+      <span class="brand-tag competitor">Stegoplant</span>
+      <span class="brand-tag competitor">Klostra</span>
+    </div>
+  </div>
+
+  <div class="response-card">
+    <div class="header">
+      <span class="model">Claude (Sonnet 4.5) — Web Search</span>
+      <span class="pill yes">Mentioned</span>
+    </div>
+    <div class="query">"What are the best online garden stores in Sweden for buying plants and garden supplies?"</div>
+    <div class="brands">
+      <span class="brand-tag competitor">Plantagen</span>
+      <span class="brand-tag target">Blomsterlandet</span>
+      <span class="brand-tag competitor">Plantthatplant</span>
+      <span class="brand-tag competitor">Ormbunker</span>
+      <span class="brand-tag competitor">Zetas Tr&auml;dg&aring;rd</span>
+    </div>
+  </div>
+
+  <div class="response-card">
+    <div class="header">
+      <span class="model">Gemini (2.5 Flash) — Web Search</span>
+      <span class="pill yes">Mentioned</span>
+    </div>
+    <div class="query">"What are the best online garden stores in Sweden for buying plants and garden supplies?"</div>
+    <div class="brands">
+      <span class="brand-tag competitor">Klorofyllverket</span>
+      <span class="brand-tag competitor">Plantazon</span>
+      <span class="brand-tag target">Blomsterlandet</span>
+      <span class="brand-tag competitor">Cramers Blommor</span>
+      <span class="brand-tag competitor">Wexthuset</span>
+      <span class="brand-tag competitor">Zetas Tr&auml;dg&aring;rd</span>
+      <span class="brand-tag competitor">Klostra</span>
+      <span class="brand-tag competitor">Odla Shop</span>
+      <span class="brand-tag competitor">Ubuy</span>
+      <span class="brand-tag competitor">Grow Zone</span>
+      <span class="brand-tag competitor">Jula</span>
+    </div>
+  </div>
+
+  <div class="response-card">
+    <div class="header">
+      <span class="model">Perplexity (Sonar Pro) — Web Search</span>
+      <span class="pill no">Not mentioned</span>
+    </div>
+    <div class="query">"What are the best online garden stores in Sweden for buying plants and garden supplies?"</div>
+    <div class="brands">
+      <span class="brand-tag competitor">Zetas Garden</span>
+      <span class="brand-tag competitor">Tr&auml;dg&aring;rdsresan</span>
+      <span class="brand-tag competitor">Ormbunker</span>
+      <span class="brand-tag competitor">Plantagen</span>
+    </div>
+  </div>
+
+  <h2>Swedish: "B&auml;sta tr&auml;dg&aring;rdsbutikerna online i Sverige"</h2>
+
+  <div class="response-card">
+    <div class="header">
+      <span class="model">ChatGPT (GPT-4o) — No Web Search</span>
+      <span class="pill yes">Mentioned</span><span class="rank-pill">#2</span>
+    </div>
+    <div class="query">"Vilka &auml;r de b&auml;sta tr&auml;dg&aring;rdsbutikerna online i Sverige?"</div>
+    <div class="brands">
+      <span class="brand-tag competitor">Plantagen</span>
+      <span class="brand-tag target">Blomsterlandet</span>
+      <span class="brand-tag competitor">Odla.nu</span>
+      <span class="brand-tag competitor">Granng&aring;rden</span>
+      <span class="brand-tag competitor">Wexthuset</span>
+      <span class="brand-tag competitor">Zetas Tr&auml;dg&aring;rd</span>
+    </div>
+  </div>
+
+  <div class="response-card">
+    <div class="header">
+      <span class="model">ChatGPT Scraper (Real ChatGPT.com)</span>
+      <span class="pill yes">Mentioned</span><span class="rank-pill">#1</span>
+    </div>
+    <div class="query">"b&auml;sta tr&auml;dg&aring;rdsbutiken online Sverige"</div>
+    <div class="brands">
+      <span class="brand-tag target">Blomsterlandet</span>
+      <span class="brand-tag competitor">Plantagen</span>
+      <span class="brand-tag competitor">Wexthuset</span>
+      <span class="brand-tag competitor">Odla.nu</span>
+      <span class="brand-tag competitor">Gardenhome</span>
+    </div>
+  </div>
+
+  <div class="response-card">
+    <div class="header">
+      <span class="model">Claude (Sonnet 4.5) — Web Search</span>
+      <span class="pill yes">Mentioned</span>
+    </div>
+    <div class="query">"Vilka &auml;r de b&auml;sta tr&auml;dg&aring;rdsbutikerna online i Sverige?"</div>
+    <div class="brands">
+      <span class="brand-tag competitor">Zetas Tr&auml;dg&aring;rd</span>
+      <span class="brand-tag target">Blomsterlandet</span>
+      <span class="brand-tag competitor">Gr&ouml;nv&auml;xtriket</span>
+      <span class="brand-tag competitor">Plantazon</span>
+      <span class="brand-tag competitor">Horto Green</span>
+      <span class="brand-tag competitor">Wexthuset</span>
+      <span class="brand-tag competitor">Granng&aring;rden</span>
+      <span class="brand-tag competitor">Odla.nu</span>
+    </div>
+  </div>
+
+  <div class="response-card">
+    <div class="header">
+      <span class="model">Gemini (2.5 Flash) — Web Search</span>
+      <span class="pill yes">Mentioned</span>
+    </div>
+    <div class="query">"Vilka &auml;r de b&auml;sta tr&auml;dg&aring;rdsbutikerna online i Sverige?"</div>
+    <div class="brands">
+      <span class="brand-tag competitor">Plantazon</span>
+      <span class="brand-tag target">Blomsterlandet</span>
+      <span class="brand-tag competitor">Wexthuset</span>
+      <span class="brand-tag competitor">Cramers Blommor</span>
+      <span class="brand-tag competitor">Zetas Tr&auml;dg&aring;rd</span>
+      <span class="brand-tag competitor">Svedberga Plantskola</span>
+      <span class="brand-tag competitor">Odla Shop</span>
+      <span class="brand-tag competitor">Gr&auml;nna-V&auml;xter</span>
+    </div>
+  </div>
+
+  <div class="response-card">
+    <div class="header">
+      <span class="model">Perplexity (Sonar Pro) — Web Search</span>
+      <span class="pill yes">Mentioned</span>
+    </div>
+    <div class="query">"Vilka &auml;r de b&auml;sta tr&auml;dg&aring;rdsbutikerna online i Sverige?"</div>
+    <div class="brands">
+      <span class="brand-tag competitor">Plantazon</span>
+      <span class="brand-tag competitor">InstantGarden</span>
+      <span class="brand-tag competitor">Zetas</span>
+      <span class="brand-tag target">Blomsterlandet</span>
+      <span class="brand-tag competitor">Cramers Blommor</span>
+    </div>
+  </div>
+</div>
+
+<!-- ========== COMPETITORS ========== -->
+<div class="page" id="competitors">
+  <h1>Competitor Map</h1>
+  <p class="subtitle">Who appears most across AI search engines? Ranked by total mentions across all queries.</p>
+
+  <table class="matrix">
+    <thead>
+      <tr><th>Brand</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th><th>Perplexity</th><th>Total</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Plantagen</strong></td>
+        <td><span class="pill yes">3/3</span></td>
+        <td><span class="pill yes">1/2</span></td>
+        <td><span class="pill no">0/2</span></td>
+        <td><span class="pill yes">2/3</span></td>
+        <td><strong style="color:var(--green)">6/10</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Zetas Tr&auml;dg&aring;rd</strong></td>
+        <td><span class="pill yes">1/3</span></td>
+        <td><span class="pill yes">2/2</span></td>
+        <td><span class="pill yes">2/2</span></td>
+        <td><span class="pill yes">2/3</span></td>
+        <td><strong style="color:var(--green)">7/10</strong></td>
+      </tr>
+      <tr style="background:rgba(99,102,241,.05)">
+        <td><strong style="color:var(--accent2)">Blomsterlandet</strong></td>
+        <td><span class="pill yes">2/3</span></td>
+        <td><span class="pill yes">2/2</span></td>
+        <td><span class="pill yes">2/2</span></td>
+        <td><span class="pill yes">1/3</span></td>
+        <td><strong style="color:var(--accent2)">7/10</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Wexthuset</strong></td>
+        <td><span class="pill yes">2/3</span></td>
+        <td><span class="pill yes">1/2</span></td>
+        <td><span class="pill yes">2/2</span></td>
+        <td><span class="pill no">0/3</span></td>
+        <td><strong>5/10</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Plantazon</strong></td>
+        <td><span class="pill no">0/3</span></td>
+        <td><span class="pill yes">1/2</span></td>
+        <td><span class="pill yes">2/2</span></td>
+        <td><span class="pill yes">2/3</span></td>
+        <td><strong>5/10</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Odla.nu</strong></td>
+        <td><span class="pill yes">2/3</span></td>
+        <td><span class="pill yes">1/2</span></td>
+        <td><span class="pill yes">1/2</span></td>
+        <td><span class="pill no">0/3</span></td>
+        <td><strong>4/10</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Ormbunker</strong></td>
+        <td><span class="pill yes">1/3</span></td>
+        <td><span class="pill yes">1/2</span></td>
+        <td><span class="pill no">0/2</span></td>
+        <td><span class="pill yes">2/3</span></td>
+        <td><strong>4/10</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Granng&aring;rden</strong></td>
+        <td><span class="pill yes">2/3</span></td>
+        <td><span class="pill yes">1/2</span></td>
+        <td><span class="pill no">0/2</span></td>
+        <td><span class="pill no">0/3</span></td>
+        <td><strong>3/10</strong></td>
+      </tr>
+      <tr>
+        <td><strong>Cramers Blommor</strong></td>
+        <td><span class="pill no">0/3</span></td>
+        <td><span class="pill no">0/2</span></td>
+        <td><span class="pill yes">2/2</span></td>
+        <td><span class="pill yes">1/3</span></td>
+        <td><strong>3/10</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="card" style="margin-top:16px">
+    <h3>Insight</h3>
+    <p style="font-size:14px;color:var(--muted)">Zetas Tr&auml;dg&aring;rd leads overall AI visibility despite being much smaller than Blomsterlandet. Their curated brand positioning and strong English web presence gives them an edge. Plantagen matches Blomsterlandet in mentions but appears more consistently across English queries. Plantazon (launched 2024) already matches Wexthuset — fast-moving newcomer to watch.</p>
+  </div>
+</div>
+
+<!-- ========== PURCHASE FUNNEL ========== -->
+<div class="page" id="funnel">
+  <h1>Purchase Funnel Analysis</h1>
+  <p class="subtitle">AI search visibility mapped to the customer buying journey. People don't buy from one query — they research, compare, then decide.</p>
+
+  <h2>The Funnel</h2>
+  <div class="card-grid" style="grid-template-columns:1fr 1fr 1fr">
+    <div class="card green" style="text-align:center">
+      <div class="label">Stage 1: Discovery</div>
+      <div class="value">58%</div>
+      <div class="sub">"What are the best garden stores?"</div>
+      <div style="margin-top:12px;font-size:12px;color:var(--muted)">7 of 12 checks across 3 queries</div>
+    </div>
+    <div class="card green" style="text-align:center">
+      <div class="label">Stage 2: Comparison</div>
+      <div class="value">100%</div>
+      <div class="sub">"Blomsterlandet vs Plantagen?"</div>
+      <div style="margin-top:12px;font-size:12px;color:var(--muted)">3 of 3 — recommended as better value</div>
+    </div>
+    <div class="card red" style="text-align:center">
+      <div class="label">Stage 3: Purchase Decision</div>
+      <div class="value">0%</div>
+      <div class="sub">"Best guarantee + delivery?"</div>
+      <div style="margin-top:12px;font-size:12px;color:var(--muted)">0 of 3 — completely invisible</div>
+    </div>
+  </div>
+
+  <div style="text-align:center;padding:16px 0;color:var(--muted);font-size:24px">
+    Discovery &rarr; Comparison &rarr; <span style="color:var(--red);font-weight:700">DROP-OFF</span>
+  </div>
+
+  <h2>Stage 2: Comparison — "Blomsterlandet or Plantagen?"</h2>
+  <div class="response-card">
+    <div class="header">
+      <span class="model">ChatGPT (GPT-4o) — Web Search</span>
+      <span class="pill yes">Recommended</span>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin:8px 0">ChatGPT built a detailed comparison table and <strong style="color:var(--green)">recommended Blomsterlandet as better value</strong>: "If your priority is value and seasonal variety, Blomsterlandet is likely the better choice." Cited bundle deals ("5 for 4" on bulbs), seasonal discounts, and user reviews noting Plantagen is "50% more expensive" for some items.</p>
+  </div>
+  <div class="response-card">
+    <div class="header">
+      <span class="model">Gemini (2.5 Flash) — Web Search</span>
+      <span class="pill yes">Balanced comparison</span>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin:8px 0">Gemini gave detailed pros/cons for both. Highlighted Blomsterlandet's <strong>Swedish-grown plants</strong> as a differentiator for climate adaptation. Noted mixed Trustpilot reviews for both (2.2 vs 2.3). Recommended checking current offers on both sites.</p>
+  </div>
+  <div class="response-card">
+    <div class="header">
+      <span class="model">Perplexity (Sonar Pro) — Web Search</span>
+      <span class="pill partial">Inconclusive</span>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin:8px 0">Perplexity couldn't find enough data to compare. Said "neither can be definitively recommended" and suggested visiting both sites directly. This reflects Blomsterlandet's weak structured web content — Perplexity's retrieval system couldn't find comparison material.</p>
+  </div>
+
+  <h2>Stage 3: Purchase Decision — "Best guarantee + delivery for perennials?"</h2>
+  <div class="response-card">
+    <div class="header">
+      <span class="model">ChatGPT (GPT-4o) — Web Search</span>
+      <span class="pill no">Not mentioned</span>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin:8px 0">ChatGPT recommended <strong>Scandiaplants</strong> (36-month guarantee), PlantePragt, and Planta. Blomsterlandet's 1-year plant guarantee was not found despite existing on their site. The guarantee page likely lacks the structured content needed for AI retrieval.</p>
+    <div class="brands">
+      <span class="brand-tag competitor">Scandiaplants (36-mo guarantee)</span>
+      <span class="brand-tag competitor">PlantePragt (3-mo warranty)</span>
+      <span class="brand-tag competitor">Planta (30-day)</span>
+      <span class="brand-tag competitor">Zetas Garden</span>
+    </div>
+  </div>
+  <div class="response-card">
+    <div class="header">
+      <span class="model">Gemini (2.5 Flash) — Web Search</span>
+      <span class="pill no">Not mentioned</span>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin:8px 0">Gemini recommended <strong>Plantagen</strong> (12-month warranty), Klostra, and Tr&auml;dg&aring;rdsdags. Despite Blomsterlandet offering a 1-year plant guarantee on garden plants, Gemini couldn't find this information.</p>
+    <div class="brands">
+      <span class="brand-tag competitor">Plantagen (12-mo warranty)</span>
+      <span class="brand-tag competitor">Klostra</span>
+      <span class="brand-tag competitor">Tr&auml;dg&aring;rdsdags</span>
+      <span class="brand-tag competitor">Plantthatplant</span>
+    </div>
+  </div>
+  <div class="response-card">
+    <div class="header">
+      <span class="model">Perplexity (Sonar Pro) — Web Search</span>
+      <span class="pill no">Not mentioned</span>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin:8px 0">Perplexity said "no Swedish garden store explicitly stands out" and defaulted to non-Swedish options (Dobbies, Sarah Raven). Mentioned Blomsterlandet only as a passing suggestion at the end: "consider checking." Not a recommendation.</p>
+    <div class="brands">
+      <span class="brand-tag competitor">Zetas Tr&auml;dg&aring;rd</span>
+      <span class="brand-tag competitor">Plantagen</span>
+      <span class="brand-tag competitor">Dobbies (UK)</span>
+      <span class="brand-tag competitor">Sarah Raven (UK)</span>
+    </div>
+  </div>
+
+  <h2>Why This Matters</h2>
+  <div class="card" style="border-left:3px solid var(--orange)">
+    <h3 style="color:var(--orange)">The last mile problem</h3>
+    <p style="font-size:14px;color:var(--muted);margin-top:8px">People don't buy from one AI query. The typical journey is:</p>
+    <p style="font-size:14px;color:var(--text);margin:12px 0;font-weight:500">"What are the best garden stores?" &rarr; "Blomsterlandet or Plantagen?" &rarr; "Who has the best plant guarantee?" &rarr; <em>purchase</em></p>
+    <p style="font-size:14px;color:var(--muted)">Blomsterlandet wins stages 1 and 2 — but loses the customer at stage 3. The person who was leaning toward Blomsterlandet now sees Scandiaplants with a 36-month guarantee and switches. <strong>All the brand awareness work is wasted if you're invisible at the purchase moment.</strong></p>
+    <p style="font-size:14px;color:var(--muted);margin-top:12px"><strong>Fix:</strong> Create dedicated, structured pages for plant guarantees, delivery policies, and product-specific landing pages (perennials, fruit trees, etc.) with clear, quotable claims that AI models can retrieve and cite.</p>
+  </div>
+</div>
+
+<!-- ========== ACTIONS ========== -->
+<div class="page" id="actions">
+  <h1>Action Plan</h1>
+  <p class="subtitle">What Blomsterlandet should do to improve AI search visibility.</p>
+
+  <h2>Immediate (0-4 weeks)</h2>
+  <ol class="action-list">
+    <li>
+      <strong>Create English-language landing pages</strong><span class="priority high">High</span>
+      <br><span style="font-size:13px;color:var(--muted)">ChatGPT and Perplexity can't find Blomsterlandet for English queries. A well-structured English "About Us" and "Shop Plants Online in Sweden" page would provide content for AI models to cite. Focus on phrases like "garden store Sweden" and "buy plants online Sweden".</span>
+    </li>
+    <li>
+      <strong>Add structured data (Organization + LocalBusiness schema)</strong><span class="priority high">High</span>
+      <br><span style="font-size:13px;color:var(--muted)">AI models with web search extract structured data to determine which brands to recommend. Add JSON-LD schema with brand description, service area (Sweden), product categories, and store locations.</span>
+    </li>
+    <li>
+      <strong>Publish a "Why Blomsterlandet" comparison page</strong><span class="priority high">High</span>
+      <br><span style="font-size:13px;color:var(--muted)">AI models often source from comparison and "best of" content. Create a page that positions Blomsterlandet against alternatives (Plantagen, online-only stores) with clear differentiators: store count, expert advice, plant guarantee, sustainability.</span>
+    </li>
+  </ol>
+
+  <h2>Short-term (1-3 months)</h2>
+  <ol class="action-list" style="counter-reset:actions 3">
+    <li>
+      <strong>Build citation-friendly content hub</strong><span class="priority med">Medium</span>
+      <br><span style="font-size:13px;color:var(--muted)">AI models cite pages with clear, quotable paragraphs. Create guides like "Complete Guide to Gardening in Sweden", "Best Plants for Swedish Climate Zones". Structure with H2s, short paragraphs, and data points that AI can extract.</span>
+    </li>
+    <li>
+      <strong>Get listed in English-language "best of Sweden" roundups</strong><span class="priority med">Medium</span>
+      <br><span style="font-size:13px;color:var(--muted)">ChatGPT with web search pulls from blog posts and roundups. Pitch travel/lifestyle bloggers who write about Swedish shopping. Even one well-ranking English article mentioning Blomsterlandet would improve retrieval.</span>
+    </li>
+    <li>
+      <strong>Optimize for Perplexity specifically</strong><span class="priority med">Medium</span>
+      <br><span style="font-size:13px;color:var(--muted)">Perplexity favors structured, citation-heavy pages. Ensure product category pages have clear meta descriptions, intro paragraphs, and internal linking. Consider adding an FAQ section with conversational Q&A that matches how people query AI.</span>
+    </li>
+  </ol>
+
+  <h2>Ongoing</h2>
+  <ol class="action-list" style="counter-reset:actions 6">
+    <li>
+      <strong>Monitor AI visibility monthly</strong><span class="priority low">Ongoing</span>
+      <br><span style="font-size:13px;color:var(--muted)">Run this same GEO audit monthly to track progress. AI model responses change as they update their training data and web search indexes. Track position changes and new competitor entries.</span>
+    </li>
+    <li>
+      <strong>Create llms.txt file</strong><span class="priority low">Ongoing</span>
+      <br><span style="font-size:13px;color:var(--muted)">Add a /llms.txt file (similar to robots.txt) that provides a structured description of the brand for AI crawlers. Early adoption signals — some models are beginning to use this.</span>
+    </li>
+  </ol>
+</div>
+
+<!-- ========== METHODOLOGY ========== -->
+<div class="page" id="methodology">
+  <h1>Methodology</h1>
+  <p class="subtitle">How this audit was conducted.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Data Source</h3>
+    <p style="font-size:14px;color:var(--muted)">All queries were executed via DataForSEO's AI Optimization API on April 11, 2026. This API sends prompts directly to each AI model and returns the full response including citations and source URLs.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Models Tested</h3>
+    <table class="matrix">
+      <thead><tr><th>Platform</th><th>Model</th><th>Web Search</th></tr></thead>
+      <tbody>
+        <tr><td>ChatGPT</td><td>GPT-4o (2024-08-06)</td><td>Enabled</td></tr>
+        <tr><td>ChatGPT Scraper</td><td>Real ChatGPT.com interface</td><td>Auto</td></tr>
+        <tr><td>Claude</td><td>Sonnet 4.5 (2025-09-29)</td><td>Enabled</td></tr>
+        <tr><td>Gemini</td><td>2.5 Flash</td><td>Enabled</td></tr>
+        <tr><td>Perplexity</td><td>Sonar Pro</td><td>Enabled</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Queries Used</h3>
+    <table class="matrix">
+      <thead><tr><th>Language</th><th>Query</th></tr></thead>
+      <tbody>
+        <tr><td>English</td><td>"What are the best online garden stores in Sweden for buying plants and garden supplies?"</td></tr>
+        <tr><td>English</td><td>"Where can I buy garden plants online in Sweden? Looking for the biggest and most popular stores."</td></tr>
+        <tr><td>Swedish</td><td>"Vilka &auml;r de b&auml;sta tr&auml;dg&aring;rdsbutikerna online i Sverige f&ouml;r att k&ouml;pa v&auml;xter och tr&auml;dg&aring;rdstillbeh&ouml;r?"</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Scoring</h3>
+    <p style="font-size:14px;color:var(--muted)">Each query-model combination is one "check". A brand receives a "mentioned" score if it appears anywhere in the AI's response text. Position tracking (#1, #2, etc.) reflects the order in which brands are listed. The overall visibility score is: (mentioned checks / total checks) &times; 100.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Total API Cost</h3>
+    <p style="font-size:14px;color:var(--muted)">12 API calls across 4 models: <strong>$0.44</strong> in DataForSEO charges. Full audit including Claude Code compute: approximately $3-5 total.</p>
+  </div>
+
+  <div class="card">
+    <h3>Limitations</h3>
+    <p style="font-size:14px;color:var(--muted)">AI responses are non-deterministic. Running the same query again may produce different results. This audit is a snapshot, not a guarantee. Temperature was set to 0.3 (low randomness) for consistency. Web search results depend on each model's real-time index.</p>
+  </div>
+</div>
+
+</div>
+
+<script>
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById(item.dataset.page).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
