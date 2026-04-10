@@ -3,474 +3,276 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GEO Audit — Blomsterlandet.se | AI Search Visibility</title>
+<title>Blomsterlandet — Syns ni i AI-sökning?</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0f1117;--card:#1a1d27;--card2:#22252f;--border:#2a2d3a;--text:#e4e4e7;--muted:#9ca3af;--accent:#6366f1;--accent2:#818cf8;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--orange:#f97316}
-body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;display:flex;min-height:100vh}
-a{color:var(--accent2);text-decoration:none}
-.sidebar{width:260px;background:var(--card);border-right:1px solid var(--border);padding:24px 0;position:fixed;height:100vh;overflow-y:auto;z-index:10}
-.sidebar .logo{padding:0 24px 24px;border-bottom:1px solid var(--border);margin-bottom:16px}
-.sidebar .logo h2{font-size:15px;font-weight:700;color:var(--text)}
-.sidebar .logo p{font-size:12px;color:var(--muted);margin-top:4px}
-.nav-item{display:block;padding:10px 24px;font-size:13px;color:var(--muted);cursor:pointer;transition:.15s}
-.nav-item:hover,.nav-item.active{color:var(--text);background:var(--card2)}
-.nav-item.active{border-left:3px solid var(--accent)}
-.main{margin-left:260px;flex:1;padding:32px 40px;max-width:1200px}
-.page{display:none}.page.active{display:block}
-h1{font-size:24px;font-weight:700;margin-bottom:8px}
-h2{font-size:18px;font-weight:600;margin:24px 0 12px}
-h3{font-size:15px;font-weight:600;margin:16px 0 8px}
-.subtitle{color:var(--muted);font-size:14px;margin-bottom:24px}
-.date-badge{display:inline-block;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:12px;color:var(--muted);margin-bottom:24px}
-.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
-.card .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-.card .value{font-size:28px;font-weight:700}
-.card .sub{font-size:12px;color:var(--muted);margin-top:4px}
-.card.green .value{color:var(--green)}.card.red .value{color:var(--red)}.card.yellow .value{color:var(--yellow)}.card.accent .value{color:var(--accent2)}.card.orange .value{color:var(--orange)}
-.matrix{width:100%;border-collapse:collapse;margin:16px 0 24px}
-.matrix th,.matrix td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border);font-size:13px}
-.matrix th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;background:var(--card)}
-.matrix td{background:var(--card2)}.matrix tr:hover td{background:var(--card)}
-.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
-.pill.yes{background:rgba(34,197,94,.15);color:var(--green)}
-.pill.no{background:rgba(239,68,68,.15);color:var(--red)}
-.pill.partial{background:rgba(234,179,8,.15);color:var(--yellow)}
-.pill.source{background:rgba(99,102,241,.15);color:var(--accent2)}
-.rank-pill{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;background:rgba(99,102,241,.15);color:var(--accent2);margin-left:6px}
-.vol-pill{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500;background:var(--card2);color:var(--muted);margin-left:6px}
-.response-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px}
-.response-card .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.response-card .model{font-weight:600;font-size:14px}
-.brand-tag{display:inline-block;padding:3px 10px;border-radius:6px;font-size:12px;margin:3px 4px 3px 0;background:var(--card2);border:1px solid var(--border)}
-.brand-tag.target{background:rgba(99,102,241,.15);border-color:var(--accent);color:var(--accent2);font-weight:600}
-.brand-tag.competitor{background:var(--card2);color:var(--muted)}
-.action-list{list-style:none;counter-reset:actions}
-.action-list li{counter-increment:actions;position:relative;padding:16px 16px 16px 52px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-size:14px}
-.action-list li::before{content:counter(actions);position:absolute;left:16px;top:16px;width:24px;height:24px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
-.priority{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-left:8px}
-.priority.high{background:rgba(239,68,68,.15);color:var(--red)}
-.priority.med{background:rgba(234,179,8,.15);color:var(--yellow)}
-.priority.low{background:rgba(34,197,94,.15);color:var(--green)}
-.bar-chart{margin:16px 0}.bar-row{display:flex;align-items:center;margin-bottom:10px}
-.bar-label{width:100px;font-size:13px;color:var(--muted);flex-shrink:0}
-.bar-track{flex:1;height:28px;background:var(--card2);border-radius:6px;overflow:hidden}
-.bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:10px;font-size:12px;font-weight:600;color:#fff}
-.bar-fill.chatgpt{background:linear-gradient(90deg,#10a37f,#1a7f64)}
-.bar-fill.claude{background:linear-gradient(90deg,#d4a27f,#b8860b)}
-.bar-fill.gemini{background:linear-gradient(90deg,#4285f4,#34a853)}
-.bar-fill.perplexity{background:linear-gradient(90deg,#1fb8cd,#1a8fa0)}
-.funnel-stage{text-align:center;padding:20px;border-radius:12px;border:1px solid var(--border)}
-.funnel-arrow{text-align:center;padding:8px 0;color:var(--muted);font-size:20px}
-.cite-url{font-size:11px;color:var(--accent2);word-break:break-all;display:block;margin-top:4px}
-@media(max-width:900px){.sidebar{display:none}.main{margin-left:0;padding:20px}.card-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:600px){.card-grid{grid-template-columns:1fr}}
+:root{--bg:#0f1117;--card:#1a1d27;--card2:#22252f;--border:#2a2d3a;--text:#e4e4e7;--muted:#9ca3af;--accent:#6366f1;--green:#22c55e;--red:#ef4444;--yellow:#eab308}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+a{color:#818cf8;text-decoration:none}
+.container{max-width:860px;margin:0 auto;padding:40px 24px 80px}
+h1{font-size:28px;font-weight:700;margin-bottom:4px}
+h2{font-size:20px;font-weight:700;margin:48px 0 16px;padding-top:32px;border-top:1px solid var(--border)}
+h3{font-size:16px;font-weight:600;margin:24px 0 8px}
+.subtitle{color:var(--muted);font-size:15px;margin-bottom:32px}
+.meta{color:var(--muted);font-size:13px;margin-bottom:32px}
+
+/* Score cards */
+.scores{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:24px 0 32px}
+.score{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center}
+.score .number{font-size:36px;font-weight:700;margin:8px 0 4px}
+.score .label{font-size:13px;color:var(--muted)}
+.score.good .number{color:var(--green)}
+.score.bad .number{color:var(--red)}
+.score.mid .number{color:var(--yellow)}
+
+/* Query blocks */
+.query-block{background:var(--card);border:1px solid var(--border);border-radius:12px;margin:20px 0;overflow:hidden}
+.query-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.query-text{font-size:15px;font-weight:600;font-style:italic}
+.query-vol{font-size:12px;color:var(--muted);background:var(--card2);padding:3px 10px;border-radius:20px}
+.query-results{padding:16px 20px}
+.ai-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.ai-row:last-child{border-bottom:none}
+.ai-name{width:90px;flex-shrink:0;font-size:13px;font-weight:600;padding-top:2px}
+.ai-name.chatgpt{color:#10a37f}
+.ai-name.claude{color:#d4a27f}
+.ai-name.gemini{color:#4285f4}
+.ai-name.perplexity{color:#1fb8cd}
+.ai-answer{flex:1;font-size:13px;color:var(--muted)}
+.ai-answer strong{color:var(--text)}
+.tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin-right:4px}
+.tag.yes{background:rgba(34,197,94,.15);color:var(--green)}
+.tag.no{background:rgba(239,68,68,.15);color:var(--red)}
+.tag.source{background:rgba(99,102,241,.15);color:#818cf8}
+
+/* Insight boxes */
+.insight{background:var(--card);border-radius:12px;padding:20px;margin:16px 0}
+.insight.good{border-left:4px solid var(--green)}
+.insight.bad{border-left:4px solid var(--red)}
+.insight.neutral{border-left:4px solid var(--yellow)}
+.insight h3{margin:0 0 8px;font-size:15px}
+.insight p{font-size:14px;color:var(--muted)}
+
+/* Action items */
+.action{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 16px 16px 20px;margin:10px 0;font-size:14px}
+.action .title{font-weight:600;color:var(--text)}
+.action .desc{color:var(--muted);margin-top:4px;font-size:13px}
+
+/* Cited pages */
+.cited{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--card2);border-radius:8px;margin:6px 0;font-size:13px}
+.cited .url{color:#818cf8;font-family:monospace;font-size:12px}
+.cited .by{color:var(--muted);font-size:12px;margin-left:auto;flex-shrink:0}
+
+@media(max-width:600px){.scores{grid-template-columns:1fr}.ai-row{flex-direction:column;gap:4px}.ai-name{width:auto}}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+<div class="container">
 
-<nav class="sidebar">
-  <div class="logo">
-    <h2>Blomsterlandet.se</h2>
-    <p>GEO Audit v2 — Real Search Queries</p>
-  </div>
-  <div class="nav-item active" data-page="dashboard">Dashboard</div>
-  <div class="nav-item" data-page="matrix">Visibility Matrix</div>
-  <div class="nav-item" data-page="funnel">Purchase Funnel</div>
-  <div class="nav-item" data-page="citations">Citations &amp; Sources</div>
-  <div class="nav-item" data-page="chatgpt">The ChatGPT Gap</div>
-  <div class="nav-item" data-page="actions">Action Plan</div>
-  <div class="nav-item" data-page="methodology">Methodology</div>
-</nav>
+<h1>Syns Blomsterlandet i AI-sökning?</h1>
+<p class="subtitle">Vi frågade ChatGPT, Claude, Gemini och Perplexity samma saker som era kunder frågar. Här är vad som hände.</p>
+<p class="meta">Kiri Media &middot; 11 april 2026 &middot; 4 AI-modeller &middot; 4 riktiga sökfrågor</p>
 
-<div class="main">
+<!-- ============ SUMMARY ============ -->
+<div class="scores">
+  <div class="score good">
+    <div class="label">Rådgivningsfrågor</div>
+    <div class="number">Bra</div>
+    <div class="label">Ert innehåll citeras som källa</div>
+  </div>
+  <div class="score good">
+    <div class="label">Köpfrågor</div>
+    <div class="number">Topp</div>
+    <div class="label">#1 eller #2 på alla modeller</div>
+  </div>
+  <div class="score bad">
+    <div class="label">ChatGPT</div>
+    <div class="number">Svag</div>
+    <div class="label">Söker inte på webben för svenska frågor</div>
+  </div>
+</div>
 
-<!-- DASHBOARD -->
-<div class="page active" id="dashboard">
-  <h1>GEO Audit v2: Real Search Queries</h1>
-  <p class="subtitle">Testing with actual Swedish search queries (1,000+ monthly searches), not artificial "best store" prompts.</p>
-  <span class="date-badge">April 11, 2026 &middot; 4 models &middot; 4 real queries &middot; 14 checks &middot; 3,390 monthly searches</span>
+<!-- ============ FRÅGA 1 ============ -->
+<h2>Fråga 1: "Vilka perenner passar i skugga?"</h2>
+<p style="color:var(--muted);font-size:14px;margin-bottom:16px">1 000 personer söker detta varje månad i Sverige. Det här är en typisk fråga som kunder ställer innan de handlar.</p>
 
-  <div class="card-grid">
-    <div class="card accent">
-      <div class="label">Overall Visibility</div>
-      <div class="value">64%</div>
-      <div class="sub">9 of 14 checks — mentioned or cited</div>
-    </div>
-    <div class="card green">
-      <div class="label">Cited as Source</div>
-      <div class="value">6x</div>
-      <div class="sub">/tips-rad/ articles cited directly by AI</div>
-    </div>
-    <div class="card green">
-      <div class="label">Purchase Queries</div>
-      <div class="value">100%</div>
-      <div class="sub">4/4 models recommend for buying</div>
-    </div>
-    <div class="card red">
-      <div class="label">ChatGPT Gap</div>
-      <div class="value">1 of 4</div>
-      <div class="sub">Doesn't trigger web search in Swedish</div>
-    </div>
+<div class="query-block">
+  <div class="query-header">
+    <span class="query-text">"Vilka perenner passar bäst i skugga? Jag vill ha blommande växter som klarar ett skuggigt läge."</span>
+    <span class="query-vol">1 000 sök/mån</span>
   </div>
-
-  <h2>The Big Picture</h2>
-  <div class="card" style="margin-bottom:12px;border-left:3px solid var(--green)">
-    <h3 style="color:var(--green)">/tips-rad/ is the GEO weapon</h3>
-    <p style="font-size:14px;color:var(--muted)">Blomsterlandet's editorial content at <code>/tips-rad/tradgard/perenner/</code> is directly cited by Claude and Gemini as an authoritative source. Their article "Fina perenner f&ouml;r skuggiga l&auml;gen" was cited <strong>6 times in a single Claude response</strong>. This is not just a mention — AI models are quoting their content to users.</p>
-  </div>
-  <div class="card" style="margin-bottom:12px;border-left:3px solid var(--green)">
-    <h3 style="color:var(--green)">Wins the purchase moment</h3>
-    <p style="font-size:14px;color:var(--muted)">When someone asks "var kan jag k&ouml;pa perenner online med hemleverans?" — Blomsterlandet appears in all 4 AI models. Claude and Gemini list them #1. Perplexity even surfaces their current 20% discount on perenner. <strong>Unlike the v1 audit, they don't disappear at the purchase stage when using real queries.</strong></p>
-  </div>
-  <div class="card" style="margin-bottom:12px;border-left:3px solid var(--red)">
-    <h3 style="color:var(--red)">ChatGPT is a black hole for Swedish queries</h3>
-    <p style="font-size:14px;color:var(--muted)">ChatGPT (GPT-4o) does not trigger web search for most Swedish product questions. It answers from training data only — listing generic plant names without citing any brand or store. This means <strong>ChatGPT users get no store recommendations at all</strong> for research queries. Only the direct purchase query "var kan jag k&ouml;pa" triggered a store list (from memory, no web search).</p>
-  </div>
-  <div class="card" style="border-left:3px solid var(--yellow)">
-    <h3 style="color:var(--yellow)">Perplexity is the citation king</h3>
-    <p style="font-size:14px;color:var(--muted)">Perplexity cites Blomsterlandet content for 3 of 4 queries — including product guides AND the store/purchase page. It pulls the richest data (current discounts, delivery times, product pages). But for "perenner i skugga", Hortogreen and Wexthuset win the citation instead.</p>
-  </div>
-
-  <h2>Visibility by Platform</h2>
-  <div class="bar-chart">
-    <div class="bar-row">
-      <div class="bar-label">ChatGPT</div>
-      <div class="bar-track"><div class="bar-fill chatgpt" style="width:25%">25% (1/4)</div></div>
+  <div class="query-results">
+    <div class="ai-row">
+      <div class="ai-name chatgpt">ChatGPT</div>
+      <div class="ai-answer"><span class="tag no">Ej nämnd</span> Listar 7 växter (Astilbe, Hosta, etc.) men nämner <strong>inga butiker alls</strong>. Sökte inte på webben — svarade från minnet.</div>
     </div>
-    <div class="bar-row">
-      <div class="bar-label">Claude</div>
-      <div class="bar-track"><div class="bar-fill claude" style="width:100%">100% (2/2) + primary source</div></div>
+    <div class="ai-row">
+      <div class="ai-name claude">Claude</div>
+      <div class="ai-answer"><span class="tag source">Källa — citerad 6 gånger</span> Svarar med växtförslag och <strong>citerar Blomsterlandets artikel "Fina perenner för skuggiga lägen" som huvudkälla</strong>. Kopierar text direkt från er sida.</div>
     </div>
-    <div class="bar-row">
-      <div class="bar-label">Gemini</div>
-      <div class="bar-track"><div class="bar-fill gemini" style="width:100%">100% (2/2) + source</div></div>
+    <div class="ai-row">
+      <div class="ai-name gemini">Gemini</div>
+      <div class="ai-answer"><span class="tag source">Källa</span> Ger utförligt svar med 15+ växter. <strong>Blomsterlandet.se är med som en av källorna.</strong> Även odla.nu och Wexthuset citeras.</div>
     </div>
-    <div class="bar-row">
-      <div class="bar-label">Perplexity</div>
-      <div class="bar-track"><div class="bar-fill perplexity" style="width:75%">75% (3/4) + citations</div></div>
+    <div class="ai-row">
+      <div class="ai-name perplexity">Perplexity</div>
+      <div class="ai-answer"><span class="tag no">Ej citerad</span> Bra svar med tabell, men <strong>citerar Hortogreen, Wexthuset och Hornbach istället</strong>. Blomsterlandets artikel hittades inte.</div>
     </div>
   </div>
 </div>
 
-<!-- MATRIX -->
-<div class="page" id="matrix">
-  <h1>Visibility Matrix</h1>
-  <p class="subtitle">Real Swedish queries mapped to actual monthly search volume. "Source" means Blomsterlandet's content was directly cited.</p>
+<div class="insight good">
+  <h3>Varför citerar Claude er?</h3>
+  <p>Er artikel på <code>/tips-rad/tradgard/perenner/fina-perenner-for-skuggiga-lagen/</code> är välskriven med tydliga rubriker, korta stycken och specifika växtnamn. Claude kopierar meningar direkt — t.ex. "Funkia trivs i halvskugga och blommar ofta med ljuslila eller vita blommor." Det är exakt det format AI-modeller letar efter.</p>
+</div>
 
-  <h2>Research Stage — Product Questions</h2>
-  <table class="matrix">
-    <thead><tr><th>Query</th><th>Vol/mo</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th><th>Perplexity</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>"Vilka perenner passar b&auml;st i skugga?"</td>
-        <td><span class="vol-pill">1,000</span></td>
-        <td><span class="pill no">No brands</span></td>
-        <td><span class="pill source">Cited 6x</span></td>
-        <td><span class="pill source">Cited as source</span></td>
-        <td><span class="pill no">Not cited</span></td>
-      </tr>
-      <tr>
-        <td>"Vilka perenner blommar hela sommaren?"</td>
-        <td><span class="vol-pill">1,300</span></td>
-        <td><span class="pill no">No brands</span></td>
-        <td><span class="pill partial">Not tested</span></td>
-        <td><span class="pill partial">Not tested</span></td>
-        <td><span class="pill source">Cited 2x</span></td>
-      </tr>
-      <tr>
-        <td>"Vilka markt&auml;ckande perenner &auml;r b&auml;st?"</td>
-        <td><span class="vol-pill">880</span></td>
-        <td><span class="pill no">No brands</span></td>
-        <td><span class="pill partial">Not tested</span></td>
-        <td><span class="pill partial">Not tested</span></td>
-        <td><span class="pill source">Cited as source</span></td>
-      </tr>
-    </tbody>
-  </table>
+<!-- ============ FRÅGA 2 ============ -->
+<h2>Fråga 2: "Perenner som blommar hela sommaren?"</h2>
+<p style="color:var(--muted);font-size:14px;margin-bottom:16px">1 300 sökningar/månad. Den mest sökta perenn-frågan i Sverige.</p>
 
-  <h2>Purchase Stage — Buy Intent</h2>
-  <table class="matrix">
-    <thead><tr><th>Query</th><th>Vol/mo</th><th>ChatGPT</th><th>Claude</th><th>Gemini</th><th>Perplexity</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>"Var kan jag k&ouml;pa perenner online med hemleverans?"</td>
-        <td><span class="vol-pill">210</span></td>
-        <td><span class="pill yes">Mentioned #4</span></td>
-        <td><span class="pill yes">Listed #1</span><span class="rank-pill">#1</span></td>
-        <td><span class="pill yes">Listed #1</span><span class="rank-pill">#1</span></td>
-        <td><span class="pill yes">Listed #2</span><span class="rank-pill">#2</span></td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div class="card" style="margin-top:16px">
-    <h3>Key difference from v1 audit</h3>
-    <p style="font-size:13px;color:var(--muted)">The v1 audit used artificial queries like "best online garden store in Sweden." Those queries showed 58% visibility. Real queries show a different pattern: Blomsterlandet's content strategy is working — their guide articles are being cited as authoritative sources. The gap is ChatGPT (no web search for Swedish) and Perplexity for some research queries where competitors like Wexthuset and Hortogreen have better-optimized pages.</p>
+<div class="query-block">
+  <div class="query-header">
+    <span class="query-text">"Vilka perenner blommar hela sommaren? Vill ha färg i rabatten från juni till september."</span>
+    <span class="query-vol">1 300 sök/mån</span>
+  </div>
+  <div class="query-results">
+    <div class="ai-row">
+      <div class="ai-name chatgpt">ChatGPT</div>
+      <div class="ai-answer"><span class="tag no">Ej nämnd</span> Samma mönster — bra växtlista, inga butiker, ingen webbsökning.</div>
+    </div>
+    <div class="ai-row">
+      <div class="ai-name perplexity">Perplexity</div>
+      <div class="ai-answer"><span class="tag source">Citerad 2 gånger</span> Citerar <strong>både ert tips-rad-inlägg OCH fråga-experten.blomsterlandet.se</strong>. Perplexity hittade två separata Blomsterlandet-sidor som källor.</div>
+    </div>
   </div>
 </div>
 
-<!-- FUNNEL -->
-<div class="page" id="funnel">
-  <h1>Purchase Funnel</h1>
-  <p class="subtitle">How Blomsterlandet appears across the real customer journey — from "what should I plant?" to "where do I buy?"</p>
+<!-- ============ FRÅGA 3 ============ -->
+<h2>Fråga 3: "Marktäckande perenner"</h2>
+<p style="color:var(--muted);font-size:14px;margin-bottom:16px">880 sökningar/månad.</p>
 
-  <div class="card-grid" style="grid-template-columns:1fr 1fr">
-    <div class="funnel-stage" style="background:var(--card)">
-      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Stage 1: Research</div>
-      <div style="font-size:13px;color:var(--text);margin-bottom:12px">"Vilka perenner passar i skugga?"<br>"Perenner som blommar hela sommaren"<br>"Markt&auml;ckande perenner"</div>
-      <div style="font-size:28px;font-weight:700;color:var(--yellow)">Mixed</div>
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">Claude/Gemini cite their guides. ChatGPT ignores all brands. Perplexity varies.</div>
+<div class="query-block">
+  <div class="query-header">
+    <span class="query-text">"Vilka marktäckande perenner är bäst? Vill ha något som sprider sig i en solig rabatt."</span>
+    <span class="query-vol">880 sök/mån</span>
+  </div>
+  <div class="query-results">
+    <div class="ai-row">
+      <div class="ai-name chatgpt">ChatGPT</div>
+      <div class="ai-answer"><span class="tag no">Ej nämnd</span> Växtlista utan butiker.</div>
     </div>
-    <div class="funnel-stage" style="background:var(--card)">
-      <div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Stage 2: Purchase</div>
-      <div style="font-size:13px;color:var(--text);margin-bottom:12px">"K&ouml;pa perenner online hemleverans"</div>
-      <div style="font-size:28px;font-weight:700;color:var(--green)">100%</div>
-      <div style="font-size:12px;color:var(--muted);margin-top:4px">All 4 models. #1 on Claude and Gemini. Perplexity surfaces current discounts.</div>
+    <div class="ai-row">
+      <div class="ai-name perplexity">Perplexity</div>
+      <div class="ai-answer"><span class="tag source">Citerad</span> Ert inlägg <code>/tips-rad/.../marktackare-sol/</code> citeras som en av källorna. Cramers Blommor och Hortogreen citeras också.</div>
     </div>
-  </div>
-
-  <h2>The Real User Journey in AI Search</h2>
-  <div class="card" style="border-left:3px solid var(--accent);margin-bottom:16px">
-    <p style="font-size:14px;color:var(--text);margin-bottom:12px"><strong>How people actually use AI for garden shopping:</strong></p>
-    <p style="font-size:14px;color:var(--muted)">1. <strong>"Vilka perenner passar i skugga?"</strong> &mdash; Claude answers using Blomsterlandet's guide. User reads plant recommendations with Blomsterlandet as the cited expert.</p>
-    <p style="font-size:14px;color:var(--muted);margin-top:8px">2. <strong>"Var kan jag k&ouml;pa dessa perenner online?"</strong> &mdash; All models list Blomsterlandet. Claude links directly to blomsterlandet.se/produkter/vaxter/utomhus/perenner/</p>
-    <p style="font-size:14px;color:var(--muted);margin-top:8px">3. <strong>The user clicks through or remembers the brand.</strong></p>
-    <p style="font-size:14px;color:var(--text);margin-top:12px">This is the ideal GEO funnel: be the source of expert content in stage 1, then be the recommended store in stage 2. Blomsterlandet achieves this on Claude and Gemini — but not on ChatGPT.</p>
-  </div>
-
-  <h2>What Competitors Do at Each Stage</h2>
-  <table class="matrix">
-    <thead><tr><th>Stage</th><th>Blomsterlandet</th><th>Main Competitors</th></tr></thead>
-    <tbody>
-      <tr>
-        <td>Research (skugga)</td>
-        <td><span class="pill source">Primary source on Claude/Gemini</span></td>
-        <td>odla.nu, Wexthuset, Hortogreen win on Perplexity</td>
-      </tr>
-      <tr>
-        <td>Research (hela sommaren)</td>
-        <td><span class="pill source">Cited on Perplexity</span></td>
-        <td>Plantagen, Bygghemma also cited</td>
-      </tr>
-      <tr>
-        <td>Research (markt&auml;ckare)</td>
-        <td><span class="pill source">Cited on Perplexity</span></td>
-        <td>Cramers Blommor, Hortogreen, Wexthuset</td>
-      </tr>
-      <tr>
-        <td>Purchase (hemleverans)</td>
-        <td><span class="pill yes">#1 on Claude/Gemini, #2 Perplexity</span></td>
-        <td>Horto Green, Granng&aring;rden, Plantazon</td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<!-- CITATIONS -->
-<div class="page" id="citations">
-  <h1>Citations &amp; Sources</h1>
-  <p class="subtitle">Exactly which Blomsterlandet pages AI models cite. This is the content that drives GEO visibility.</p>
-
-  <h2>Pages Cited by AI Models</h2>
-  <table class="matrix">
-    <thead><tr><th>URL</th><th>Cited By</th><th>For Query</th></tr></thead>
-    <tbody>
-      <tr>
-        <td><code>/tips-rad/tradgard/perenner/fina-perenner-for-skuggiga-lagen/</code></td>
-        <td><span class="pill source">Claude (6x)</span> <span class="pill source">Gemini</span></td>
-        <td>Perenner i skugga</td>
-      </tr>
-      <tr>
-        <td><code>/tips-rad/tradgard/perenner/perenner-som-blommar-hela-sommaren/</code></td>
-        <td><span class="pill source">Perplexity</span></td>
-        <td>Perenner hela sommaren</td>
-      </tr>
-      <tr>
-        <td><code>/tips-rad/tradgard/perenner/marktackare-sol/</code></td>
-        <td><span class="pill source">Perplexity</span></td>
-        <td>Markt&auml;ckande perenner</td>
-      </tr>
-      <tr>
-        <td><code>/produkter/vaxter/utomhus/perenner/</code></td>
-        <td><span class="pill source">Claude</span> <span class="pill source">Perplexity</span></td>
-        <td>K&ouml;pa perenner online</td>
-      </tr>
-      <tr>
-        <td><code>fraga-experten.blomsterlandet.se/.../perenn-som-blommar-hela-sommaren/</code></td>
-        <td><span class="pill source">Perplexity</span></td>
-        <td>Perenner hela sommaren</td>
-      </tr>
-    </tbody>
-  </table>
-
-  <div class="card" style="margin-top:16px;border-left:3px solid var(--green)">
-    <h3 style="color:var(--green)">What makes these pages citable?</h3>
-    <p style="font-size:14px;color:var(--muted);margin-top:8px">These pages share common traits that make AI models prefer them as sources:</p>
-    <ul style="font-size:13px;color:var(--muted);margin:8px 0 0 20px;list-style:disc">
-      <li><strong>Clear, specific H1s</strong> that match search queries exactly ("Fina perenner f&ouml;r skuggiga l&auml;gen")</li>
-      <li><strong>Short, quotable paragraphs</strong> — Claude directly quotes sentences from these pages</li>
-      <li><strong>Structured plant recommendations</strong> with species names, care tips, and placement advice</li>
-      <li><strong>Swedish-language authority</strong> on a .se domain with established topical relevance</li>
-    </ul>
-  </div>
-
-  <h2>Pages NOT Cited (Opportunity)</h2>
-  <div class="card" style="margin-bottom:12px">
-    <h3>Guarantee &amp; delivery pages</h3>
-    <p style="font-size:13px;color:var(--muted)">Blomsterlandet's 1-year plant guarantee and delivery policies are mentioned by AI but never with a direct citation link. Creating a dedicated <code>/tips-rad/vaxtgaranti/</code> or <code>/leverans/</code> page with structured, quotable content would give AI models something to cite when users ask about guarantees.</p>
-  </div>
-  <div class="card">
-    <h3>English-language content</h3>
-    <p style="font-size:13px;color:var(--muted)">No English pages exist. When queries are in English, Blomsterlandet disappears from ChatGPT and Perplexity. Even a single well-structured English landing page would be retrievable.</p>
   </div>
 </div>
 
-<!-- CHATGPT GAP -->
-<div class="page" id="chatgpt">
-  <h1>The ChatGPT Gap</h1>
-  <p class="subtitle">ChatGPT handles Swedish product queries differently from other AI models — and it hurts Blomsterlandet.</p>
+<!-- ============ FRÅGA 4 ============ -->
+<h2>Fråga 4: "Var köper jag perenner online?"</h2>
+<p style="color:var(--muted);font-size:14px;margin-bottom:16px">Det här är köpfrågan — den som leder direkt till en beställning. 210 sökningar/månad.</p>
 
-  <div class="card-grid" style="grid-template-columns:1fr 1fr">
-    <div class="card red">
-      <div class="label">ChatGPT Web Search Rate</div>
-      <div class="value">25%</div>
-      <div class="sub">Only triggered for 1 of 4 Swedish queries</div>
-    </div>
-    <div class="card green">
-      <div class="label">Other Models Web Search Rate</div>
-      <div class="value">90%+</div>
-      <div class="sub">Claude, Gemini, Perplexity almost always search</div>
-    </div>
+<div class="query-block">
+  <div class="query-header">
+    <span class="query-text">"Var kan jag köpa perenner online i Sverige med hemleverans?"</span>
+    <span class="query-vol">210 sök/mån</span>
   </div>
-
-  <h2>What ChatGPT Actually Does</h2>
-
-  <div class="response-card">
-    <div class="header">
-      <span class="model">"Vilka perenner passar i skugga?"</span>
-      <span class="pill no">No web search &middot; No brands</span>
+  <div class="query-results">
+    <div class="ai-row">
+      <div class="ai-name chatgpt">ChatGPT</div>
+      <div class="ai-answer"><span class="tag yes">Nämnd #4</span> Listar: Plantagen, Odla.nu, Wexthuset, <strong>Blomsterlandet</strong>, Zetas. Från minnet, inga länkar.</div>
     </div>
-    <p style="font-size:13px;color:var(--muted)">ChatGPT answers from training data only. Lists 7 plant species (Astilbe, Hosta, L&ouml;jtnantshjärta, etc.) with correct botanical info — but no store references, no links, no product pages. Users get helpful gardening advice but <strong>zero purchase pathway</strong>.</p>
-  </div>
-
-  <div class="response-card">
-    <div class="header">
-      <span class="model">"Vilka perenner blommar hela sommaren?"</span>
-      <span class="pill no">No web search &middot; No brands</span>
+    <div class="ai-row">
+      <div class="ai-name claude">Claude</div>
+      <div class="ai-answer"><span class="tag yes">Nämnd #1</span> <strong>Blomsterlandet listas först</strong> med direktlänk till perenner-sidan. Nämner hemleverans och säsong mars–oktober.</div>
     </div>
-    <p style="font-size:13px;color:var(--muted)">Same pattern. Lists 9 species correctly (Echinacea, Salvia, Rudbeckia, etc.). Zero brand mentions. If a user follows up with "var kan jag k&ouml;pa?", ChatGPT will then list stores from memory — but the initial research query has no brand association.</p>
-  </div>
-
-  <div class="response-card">
-    <div class="header">
-      <span class="model">"Var kan jag k&ouml;pa perenner online?"</span>
-      <span class="pill yes">No web search &middot; But lists stores from memory</span>
+    <div class="ai-row">
+      <div class="ai-name gemini">Gemini</div>
+      <div class="ai-answer"><span class="tag yes">Nämnd #1</span> <strong>Blomsterlandet listas först.</strong> Nämner 1 års växtgaranti och hemleverans. 8 andra butiker listas också.</div>
     </div>
-    <p style="font-size:13px;color:var(--muted)">ChatGPT lists 5 stores from training data: Plantagen (#1), Odla.nu (#2), Wexthuset (#3), <strong>Blomsterlandet (#4)</strong>, Zetas (#5). No links, no current offers, no citations. This is brand recall from pre-training, not live data.</p>
-  </div>
-
-  <h2>Why This Matters</h2>
-  <div class="card" style="border-left:3px solid var(--orange)">
-    <p style="font-size:14px;color:var(--muted)"><strong>ChatGPT is the most-used AI assistant globally.</strong> When Swedish users ask it about gardening, they get accurate plant advice but no connection to stores. The research phase (the majority of queries) is a brand-free zone on ChatGPT.</p>
-    <p style="font-size:14px;color:var(--muted);margin-top:8px">This isn't something Blomsterlandet can directly fix — it's a ChatGPT behavior difference for non-English queries. But it means: <strong>the other 3 models (Claude, Gemini, Perplexity) carry 100% of the GEO value for Swedish research queries.</strong> Optimizing for those platforms matters more than ChatGPT for this market.</p>
+    <div class="ai-row">
+      <div class="ai-name perplexity">Perplexity</div>
+      <div class="ai-answer"><span class="tag yes">Nämnd #2</span> Hortogreen först, sedan <strong>Blomsterlandet med direkt info om 20% rabatt på perenner t.o.m. 19/4</strong>. Mest detaljerat svar.</div>
+    </div>
   </div>
 </div>
 
-<!-- ACTIONS -->
-<div class="page" id="actions">
-  <h1>Action Plan</h1>
-  <p class="subtitle">Priorities based on what the data actually shows — not generic GEO advice.</p>
-
-  <h2>Double Down on What Works</h2>
-  <ol class="action-list">
-    <li>
-      <strong>Expand /tips-rad/ content for high-volume queries</strong><span class="priority high">High</span>
-      <br><span style="font-size:13px;color:var(--muted)">The existing articles are already being cited as sources. Create more for the top queries: "t&aring;liga perenner" (480/mo), "perenner soligt l&auml;ge" (590/mo), "bl&aring; perenner" (480/mo), "barrotade perenner" (590/mo). Each well-structured guide = a new citable source for AI models.</span>
-    </li>
-    <li>
-      <strong>Structure existing guides for better AI extraction</strong><span class="priority high">High</span>
-      <br><span style="font-size:13px;color:var(--muted)">Claude already quotes Blomsterlandet's content verbatim. Optimize for this: clear H2 headings matching query patterns, short paragraphs with species names and care tips in the first 2 sentences, data points (bloom period, height, hardiness zone) that AI can extract. FAQ sections with conversational Q&A.</span>
-    </li>
-    <li>
-      <strong>Keep fr&aring;ga-experten.blomsterlandet.se active</strong><span class="priority med">Medium</span>
-      <br><span style="font-size:13px;color:var(--muted)">Perplexity cited the fr&aring;ga-experten Q&A page. This user-generated content is valuable for long-tail AI queries. Ensure it remains crawlable and well-structured during any replatforming.</span>
-    </li>
-  </ol>
-
-  <h2>Close the Gaps</h2>
-  <ol class="action-list" style="counter-reset:actions 3">
-    <li>
-      <strong>Win the "perenner i skugga" query on Perplexity</strong><span class="priority med">Medium</span>
-      <br><span style="font-size:13px;color:var(--muted)">Perplexity cites Hortogreen and Wexthuset for this query instead of Blomsterlandet. The existing Blomsterlandet article exists but isn't being retrieved. Possible fixes: stronger meta description, add structured data, increase internal linking to this page, add pricing/product links within the guide.</span>
-    </li>
-    <li>
-      <strong>Create a dedicated guarantee/delivery page</strong><span class="priority med">Medium</span>
-      <br><span style="font-size:13px;color:var(--muted)">AI models mention Blomsterlandet's 1-year guarantee and hemleverans but can't cite a source page. A well-structured <code>/om-oss/vaxtgaranti/</code> page would give AI something quotable for purchase-decision queries.</span>
-    </li>
-    <li>
-      <strong>Monitor ChatGPT web search behavior</strong><span class="priority low">Low</span>
-      <br><span style="font-size:13px;color:var(--muted)">ChatGPT's lack of web search for Swedish queries is a platform limitation. Re-test monthly — if ChatGPT starts searching for Swedish queries, Blomsterlandet's existing content should rank well (it already works on Claude/Gemini/Perplexity).</span>
-    </li>
-  </ol>
+<div class="insight good">
+  <h3>Ni äger köpfrågan</h3>
+  <p>När kunden är redo att beställa, rekommenderar alla AI-modeller Blomsterlandet. Claude och Gemini listar er som #1. Perplexity visar till och med er aktuella kampanj. Det här är den fråga som leder till intäkter — och ni syns överallt.</p>
 </div>
 
-<!-- METHODOLOGY -->
-<div class="page" id="methodology">
-  <h1>Methodology</h1>
-  <p class="subtitle">How this v2 audit differs from v1.</p>
+<!-- ============ CONTENT THAT GETS CITED ============ -->
+<h2>Ert innehåll som AI citerar</h2>
+<p style="color:var(--muted);font-size:14px;margin-bottom:16px">De här sidorna kopieras och länkas av AI-modeller när de svarar kunder:</p>
 
-  <div class="card" style="margin-bottom:16px">
-    <h3>v1 vs v2</h3>
-    <p style="font-size:14px;color:var(--muted)"><strong>v1</strong> used artificial queries: "best online garden store in Sweden." These showed 58% visibility but tested brand awareness, not real user behavior.</p>
-    <p style="font-size:14px;color:var(--muted);margin-top:8px"><strong>v2</strong> uses real Swedish search queries pulled from DataForSEO keyword data — the actual phrases people type (1,000+ monthly searches). This tests whether Blomsterlandet appears in the queries that drive actual purchasing decisions.</p>
-  </div>
-
-  <div class="card" style="margin-bottom:16px">
-    <h3>Queries Used (with real search volume)</h3>
-    <table class="matrix">
-      <thead><tr><th>Query</th><th>Monthly Vol</th><th>Intent</th><th>Models Tested</th></tr></thead>
-      <tbody>
-        <tr><td>"Vilka perenner passar b&auml;st i skugga?"</td><td>1,000</td><td>Informational</td><td>All 4</td></tr>
-        <tr><td>"Vilka perenner blommar hela sommaren?"</td><td>1,300</td><td>Informational</td><td>ChatGPT, Perplexity</td></tr>
-        <tr><td>"Vilka markt&auml;ckande perenner &auml;r b&auml;st?"</td><td>880</td><td>Informational</td><td>ChatGPT, Perplexity</td></tr>
-        <tr><td>"Var kan jag k&ouml;pa perenner online med hemleverans?"</td><td>210</td><td>Commercial</td><td>All 4</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="card" style="margin-bottom:16px">
-    <h3>Models</h3>
-    <table class="matrix">
-      <thead><tr><th>Platform</th><th>Model</th><th>Web Search</th></tr></thead>
-      <tbody>
-        <tr><td>ChatGPT</td><td>GPT-4o</td><td>Enabled (but rarely triggered for Swedish)</td></tr>
-        <tr><td>Claude</td><td>Sonnet 4.5</td><td>Enabled</td></tr>
-        <tr><td>Gemini</td><td>2.5 Flash</td><td>Enabled</td></tr>
-        <tr><td>Perplexity</td><td>Sonar Pro</td><td>Always on</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="card">
-    <h3>Total Cost</h3>
-    <p style="font-size:14px;color:var(--muted)">14 API calls: <strong>~$0.55</strong> in DataForSEO. Keyword research: ~$0.15. Total with Claude Code compute: ~$4.</p>
-  </div>
+<div class="cited">
+  <span class="url">/tips-rad/tradgard/perenner/fina-perenner-for-skuggiga-lagen/</span>
+  <span class="by">Claude (6x), Gemini</span>
+</div>
+<div class="cited">
+  <span class="url">/tips-rad/tradgard/perenner/perenner-som-blommar-hela-sommaren/</span>
+  <span class="by">Perplexity</span>
+</div>
+<div class="cited">
+  <span class="url">/tips-rad/tradgard/perenner/marktackare-sol/</span>
+  <span class="by">Perplexity</span>
+</div>
+<div class="cited">
+  <span class="url">/produkter/vaxter/utomhus/perenner/</span>
+  <span class="by">Claude, Perplexity</span>
+</div>
+<div class="cited">
+  <span class="url">fraga-experten.blomsterlandet.se/…/perenn-som-blommar-hela-sommaren/</span>
+  <span class="by">Perplexity</span>
 </div>
 
+<div class="insight neutral">
+  <h3>Mönstret</h3>
+  <p>Era <strong>/tips-rad/</strong>-artiklar är er största tillgång i AI-sökning. Varje guide ni skriver kan bli en källa som AI-modeller citerar tusentals gånger. Det är som att skriva en Wikipedia-artikel om trädgårdsskötsel — fast på er egen sajt med er egen länk.</p>
 </div>
 
-<script>
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    item.classList.add('active');
-    document.getElementById(item.dataset.page).classList.add('active');
-  });
-});
-</script>
+<!-- ============ CHATGPT ============ -->
+<h2>Varför syns ni inte på ChatGPT?</h2>
+
+<div class="insight bad">
+  <h3>ChatGPT söker inte på webben för svenska frågor</h3>
+  <p>När man frågar ChatGPT "vilka perenner passar i skugga?" på svenska, <strong>söker den inte på internet</strong>. Den svarar från minnet — rätt växtinfo, men inga butiker, inga länkar, inga rekommendationer.</p>
+  <p style="margin-top:8px">Claude, Gemini och Perplexity söker alltid på webben och hittar ert innehåll. ChatGPT gör det bara när man direkt frågar "var kan jag köpa?" — och även då utan att söka webben (svarar från minnet).</p>
+  <p style="margin-top:8px"><strong>Det här kan ni inte påverka</strong> — det är ett ChatGPT-beteende. Men det betyder att Claude, Gemini och Perplexity är viktigare för er i dagsläget.</p>
+</div>
+
+<!-- ============ ACTIONS ============ -->
+<h2>Vad bör ni göra?</h2>
+
+<div class="action">
+  <div class="title">1. Skriv fler /tips-rad/-artiklar för populära sökfrågor</div>
+  <div class="desc">Varje guide blir en källa som AI citerar. Prioriterade ämnen: "tåliga perenner" (480 sök/mån), "perenner soligt läge" (590 sök/mån), "blå perenner" (480 sök/mån). Skriv med tydliga rubriker, korta stycken och specifika växtnamn.</div>
+</div>
+
+<div class="action">
+  <div class="title">2. Vinn Perplexity för "perenner i skugga"</div>
+  <div class="desc">Perplexity citerar Hortogreen och Wexthuset istället för er på den frågan, trots att er artikel finns. Förbättra: starkare meta-beskrivning, lägg till priser/produktlänkar i guiden, öka intern länkning till den sidan.</div>
+</div>
+
+<div class="action">
+  <div class="title">3. Skapa en tydlig garanti- och leveranssida</div>
+  <div class="desc">AI-modeller nämner er 1-års växtgaranti och hemleverans — men kan inte länka till en specifik sida. En dedikerad sida med tydlig rubrik gör det lättare för AI att citera.</div>
+</div>
+
+<div class="action">
+  <div class="title">4. Behåll fråga-experten vid replatforming</div>
+  <div class="desc">Perplexity citerar redan fråga-experten.blomsterlandet.se. Den subdomänen är en källa för AI-sökning — säkerställ att den inte försvinner eller tappar URL:er vid plattformsbyte.</div>
+</div>
+
+<!-- ============ METHOD ============ -->
+<h2>Så här gjordes analysen</h2>
+<p style="font-size:14px;color:var(--muted);margin-bottom:12px">Vi tog reda på vilka frågor svenska trädgårdskunder faktiskt söker på (via DataForSEO sökdata). Sen ställde vi exakt de frågorna till ChatGPT, Claude, Gemini och Perplexity och analyserade svaren: nämns Blomsterlandet? Citeras er sajt? Vilken position har ni?</p>
+<p style="font-size:14px;color:var(--muted)">Total kostnad: ~$4. Hela analysen tog 15 minuter.</p>
+
+<p style="margin-top:40px;font-size:13px;color:var(--muted)">Rapport av Kiri Media &middot; <a href="https://kirimedia.co">kirimedia.co</a></p>
+
+</div>
 </body>
 </html>
